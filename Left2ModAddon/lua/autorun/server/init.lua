@@ -1,4 +1,26 @@
 if (SERVER) then
+	--[[
+	Explanation here, for the weapons.
+
+	Most of the weapon_spawn information is here:
+	https://developer.valvesoftware.com/wiki/Weapon_spawn
+	https://developer.valvesoftware.com/wiki/Weapon_melee_spawn
+
+	The difference between the official L4D2 entity and this, is that you can add custom weapons.
+	(I do recommend keeping most spawns on random categories, such as "any tier 1 primary" or "any shotgun", to keep the variety up.
+	Melee weapons are the same, however they use "any" for random.
+
+	Do try to keep the weapon ID unique, possibly with an identifier (ex. "weapon_shotgun" becomes "authorname_weapon_shotgun")
+
+	Melee weapons are simple,
+	{"spawn name", "weapon class", "model path"}
+
+	Primary weapons are a little more complex, but still simple.
+	They work the same way as melee weapons, with the added table layers for organization and variety.
+
+	Try to keep your weapons outside of Tier1, Tier2, SMGs, and Shotguns.
+	Putting them into the other tables is enough.
+	]]
     local myPrimaryWeapons = {
         Tier1 = {},
         Tier2 = {},
@@ -12,6 +34,9 @@ if (SERVER) then
         Tier2Shotguns = {}
     }
 
+	--To make life easier, compress the tables
+	--Because this exists, I recommend keeping weapons outside of the global-ish categories.
+	--(Tier1, Tier2, SMGS, and Shotguns)
     for i, v in pairs(myPrimaryWeapons.SMGs) do
         myPrimaryWeapons.Tier1[i] = v
     end
@@ -34,10 +59,19 @@ if (SERVER) then
         {"weapon_addon_melee", "weapon_crowbar", "models/weapons/w_crowbar.mdl"}
     }
 
+	--[[
+	Playermodels are one of the simplest additions you can make, and are used for the survivors.
+
+	model = player icon
+	["path/to/model.mdl"] = "path/to/material.png"
+	]]
 	local myPlayerModels = {
         ["models/vocaloid/hatsune_miku_v3/hatsune_miku_v3_player.mdl"] = "playericons/miku.png"
 	}
 
+	--[[
+	Ahead is generally where your addon hooks onto the main L2M code.
+	]]
 	local playerModelSent = false
     local primarySent, meleeSent = false, false
     function tryHook()
@@ -77,12 +111,18 @@ if (SERVER) then
 		end
     end
 
+	--Try hooking onto the addon, if the gamemode loads *before* the addon.
     hook.Add("Initialize", "AddonInitialize", function()
         print("Left 2 Mod Addon is now initialized!")
         tryHook()
     end)
 
+	--In the case where the gamemode loads *after* the addon.
     hook.Add("Left2ModInitialize", "AddCustomWeapons", function()
-        tryHook()
+		--Wait a tick or two so the gamemode can initialize first
+		coroutine.yield()
+		timer.Simple(0, function()
+			tryHook()
+		end)
     end)
 end
