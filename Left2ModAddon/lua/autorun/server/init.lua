@@ -120,7 +120,11 @@ if (SERVER) then
 	--In the case where the gamemode loads *after* the addon.
     hook.Add("Left2ModInitialize", "AddCustomWeapons", function()
 		--Wait a tick or two so the gamemode can initialize first
-		coroutine.yield()
+        pcall(function()
+            --Yielding causes an error that I really don't want to deal with
+            --So I'm just encasing it in a pcall
+		    coroutine.yield()
+        end)
 		timer.Simple(0, function()
 			tryHook()
 		end)
